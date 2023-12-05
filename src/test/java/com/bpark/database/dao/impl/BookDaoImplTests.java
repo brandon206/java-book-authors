@@ -1,9 +1,10 @@
-package com.bpark.database.dao;
+package com.bpark.database.dao.impl;
 
-import com.bpark.database.dao.impl.BookDaoImpl;
+import com.bpark.database.TestDataUtil;
 import com.bpark.database.domain.Book;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,6 +15,7 @@ import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class BookDaoImplTests {
+
     @Mock
     private JdbcTemplate jdbcTemplate;
 
@@ -22,11 +24,7 @@ public class BookDaoImplTests {
 
     @Test
     public void testThatCreateBookGeneratesCorrectSql() {
-        Book book= Book.builder()
-                .isbn("978-1-2345-6789-0")
-                .title("The Shadow in the Attic")
-                .authorId(1L)
-                .build();
+        Book book = TestDataUtil.createTestBook();
 
         underTest.create(book);
 
@@ -37,4 +35,15 @@ public class BookDaoImplTests {
                 eq(1L)
         );
     }
+
+    @Test
+    public void testThatFindOneBookGeneratesCorrectSql() {
+        underTest.find("978-1-2345-6789-0");
+        verify(jdbcTemplate).query(
+                eq("SELECT isbn, title, author_id from books WHERE isbn = ? LIMIT 1"),
+                ArgumentMatchers.<BookDaoImpl.BookRowMapper>any(),
+                eq("978-1-2345-6789-0")
+        );
+    }
+
 }
